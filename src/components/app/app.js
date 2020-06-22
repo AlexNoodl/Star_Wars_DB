@@ -1,41 +1,48 @@
-import React, { Component } from "react";
+import React, { Component } from 'react';
 
-import Header from "../header";
-import RandomPlanet from "../random-planet";
-import ItemList from "../item-list";
-import PersonDetails from "../person-details";
+import Header from '../header';
+import RandomPlanet from '../random-planet';
+import ErrorBoundry from '../error-boundry';
+import SwapiService from '../../services/swapi-service';
+import DummySwapiService from '../../services/dummy-swapi-service';
 
-import "./app.css";
-import ErrorButton from "../error-button/error-button";
+import { PeoplePage, PlanetsPage, StarshipsPage } from '../pages';
+import { SwapiServiceProvider } from '../swapi-service-context';
+
+import './app.css';
 
 export default class App extends Component {
-   state = {
-      selectedPerson: null,
-   };
 
-   onPersonSelected = (id) => {
-      this.setState({ selectedPerson: id });
-   };
+  state = {
+    swapiService: new SwapiService()
+  };
 
-   render() {
-      return (
-         <div className="stardb-app">
-            <Header />
+  onServiceChange = () => {
+    this.setState(({ swapiService }) => {
+      const Service = swapiService instanceof SwapiService ?
+                        DummySwapiService : SwapiService;
+      return {
+        swapiService: new Service()
+      };
+    });
+  };
+
+  render() {
+
+    return (
+      <ErrorBoundry>
+        <SwapiServiceProvider value={this.state.swapiService} >
+          <div className="stardb-app">
+            <Header onServiceChange={this.onServiceChange} />
+
             <RandomPlanet />
+            <PeoplePage />
+            <PlanetsPage />
+            <StarshipsPage />
 
-            <div className="row mb2 button-row">
-               <ErrorButton />
-            </div>
-
-            <div className="row mb2">
-               <div className="col-md-6">
-                  <ItemList onItemSelected={this.onPersonSelected} />
-               </div>
-               <div className="col-md-6">
-                  <PersonDetails personId={this.state.selectedPerson} />
-               </div>
-            </div>
-         </div>
-      );
-   }
+          </div>
+        </SwapiServiceProvider>
+      </ErrorBoundry>
+    );
+  }
 }
